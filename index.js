@@ -34,16 +34,14 @@ io.on('connection',function(socket){
              {sockets[to].emit('message', {message:data});}
         });
 
-      socket.on('messgeToRoom', function(data){
+      socket.on('messageToRoom', function(data){
             //Send message to everyone
-            //console.log(to+' '+sockets[to]);
 
-            //sockets[to].emit('message', data);
-
+            console.log("Som");
             Object.keys(io.sockets.sockets).forEach(function(id){
                   if(id != socket.id)
                   {
-                  io.to(id).emit('messgeToRoom',{message:data})
+                  io.to(id).emit('messageToRoom',{message:data});
                   }
             });
 
@@ -67,7 +65,7 @@ io.on('connection',function(socket){
     socket.on('disconnect',function(){
     console.log("User disconnected" + socket.id);
     });
-})
+});
 
 http.listen(3000,function(){
 console.log('server listening port:3000')
