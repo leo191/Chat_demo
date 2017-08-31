@@ -11,6 +11,7 @@ import android.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
@@ -34,6 +36,7 @@ import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -63,10 +66,12 @@ public class ChatFragment extends Fragment {
     private RecyclerView.Adapter mAdapter;
     private static String username;
     private boolean flag;
-    private Socket socket;
+    private TextView listofUser;
+    private Toolbar mToolbar;
+    public static Socket socket;
     {
         try{
-            socket = IO.socket("http://192.168.0.113:3000");
+            socket = IO.socket("http://192.168.0.103:3000");
         }catch(URISyntaxException e){
             throw new RuntimeException(e);
         }
@@ -96,9 +101,10 @@ public class ChatFragment extends Fragment {
         socket.connect();
         socket.on("message", handleIncomingMessages);
         socket.on("messageToRoom", handleIncomingRoomMessages);
-
+        socket.on("records",oldloading);
         socket.on("userExists",userexist);
         socket.on("userSet",userset);
+
 
     }
 
@@ -150,7 +156,7 @@ public class ChatFragment extends Fragment {
         mMessagesView = (RecyclerView) view.findViewById(R.id.messages);
         mMessagesView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mMessagesView.setAdapter(mAdapter);
-
+        listofUser =(TextView) view.findViewById(R.id.active_users);
         final ImageButton sendButton = (ImageButton) view.findViewById(R.id.send_button);
         mInputMessageView = (EditText) view.findViewById(R.id.message_input);
         mtoWhom = (EditText)view.findViewById(R.id.toWho);
@@ -164,6 +170,7 @@ public class ChatFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 flag=true;
+                groupPop();
                 mGrpBtn.setVisibility(View.GONE);
                 mOneBtn.setVisibility(View.GONE);
                 mInputMessageView.setVisibility(View.VISIBLE);
@@ -253,7 +260,35 @@ public class ChatFragment extends Fragment {
     }
 
 
+    public void groupPop()
+    {
+        AlertDialog.Builder newalert = new AlertDialog.Builder(getActivity());
+        newalert.setTitle("Group name");
 
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View view = inflater.inflate(R.layout.nickname,null);
+        final EditText groupname = (EditText) view.findViewById(R.id.nickName);
+        newalert.setView(view);
+        newalert.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                mtoWhom.setVisibility(View.GONE);
+                socket.emit("create",groupname.getText().toString());
+
+
+            }
+        });
+
+        newalert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+
+            }
+        });
+        AlertDialog dl = newalert.create();
+        dl.show();
+    }
 
 
 
@@ -373,13 +408,39 @@ public class ChatFragment extends Fragment {
 
 
 
-
+    String list="";
     private Emitter.Listener userset = new Emitter.Listener() {
         @Override
-        public void call(Object... args) {
+        public void call(final Object... args) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                   try
+                   {
+                      JSONObject object = (JSONObject)args[0];
+                       JSONArray array = object.getJSONArray("userslist");
+                       for(int i=0;i<array.length();i++)
+                       {
+                           list += array.get(i).toString()+"\n";
+                       }
+                       listofUser.setText(list);
+
+                   }catch (JSONException yh)
+                   {
+
+                   }
+                    /*try {
+                       for(int i=0;i<array.length();i++)
+                       {
+                           list += array.get(i).toString();
+                       }
+                        listofUser.setText(list);
+
+                    }
+                    catch (JSONException ed)
+                    {
+
+                    }*/
                    Toast.makeText(getActivity(),"User added",Toast.LENGTH_SHORT).show();
 
                 }
@@ -459,6 +520,49 @@ public class ChatFragment extends Fragment {
             });
         }
     };
+
+
+
+
+    private Emitter.Listener oldloading = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    JSONArray jobj = (JSONArray) args[0];
+
+
+
+                    for(int i =0;i<jobj.length();i++)
+                    {
+                        try {
+                            String msg = ((JSONObject)jobj.get(i)).getString("msg");
+                            addMessage(msg);
+                        } catch (JSONException e) {
+
+                        }
+                    }
+
+
+                }
+            });
+        }
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @Override
     public void onDetach() {

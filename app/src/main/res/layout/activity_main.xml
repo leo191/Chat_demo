@@ -1,20 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.leo.chat.MainActivity">
+<include
+    android:id="@+id/main_toolbar"
+    layout="@layout/toolbar"/>
 
-    <!--<RelativeLayout
+    <Button
+        android:layout_below="@+id/main_toolbar"
+        android:id="@+id/bttn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start"/>
+
+    <RelativeLayout
         android:id="@+id/chatwindow"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    </RelativeLayout>-->
-    <fragment
+    </RelativeLayout>
+   <!-- <fragment
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/chat"
-        class="com.example.leo.chat.ChatFragment"/>
-</FrameLayout>
+        class="com.example.leo.chat.ChatFragment"/>-->
+</RelativeLayout>

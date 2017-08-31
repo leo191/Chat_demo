@@ -13,6 +13,16 @@ public class Message {
 
     private int mType;
     private String mMessage;
+
+    public String getSender() {
+        return sender;
+    }
+
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
+
+    private String sender;
     private Bitmap mImage;
 
     private Message() {}

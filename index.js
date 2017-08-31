@@ -2,6 +2,7 @@
 var app =require('express')();
 var http =require('http').Server(app);
 var io = require('socket.io')(http);
+var mongoose = require('mongoose');
 app.get('/',function(res,res){
         res.sendFile(__dirname+'/index.html');
 })
@@ -10,8 +11,59 @@ app.get('/',function(res,res){
 users = [];
 var sockets = {};
 
-io.on('connection',function(socket){
+
+mongoose.connect('mongodb://leo191:leo@ds149433.mlab.com:49433/abchats',function(err)
+{
+    if(err)
+    {
+
+    }
+    else{
+    console.log("Success");
+    }
+});
+
+
+
+
+
+var userSchema = mongoose.Schema({
+
+
+apertmentID: String,
+userID: String,
+userName: String,
+
+});
+
+
+var messageSchema = mongoose.Schema({
+userID: String,
+message: String,
+created: {type:Date,
+            default:Date.Now}
+});
+
+
+var chatSchema = mongoose.Schema({
+
+userID: String,
+toWhom: String,
+fromWho: String
+
+});
+
+
+
+
+//var ChatModel = mongoose.model('Message',chatschema);
+
+
+
+
+io.on('connection', function(socket){
     console.log('User connected:'+ socket.id);
+
 
     socket.on('setUsername', function(data){
          console.log(data);
@@ -22,28 +74,53 @@ io.on('connection',function(socket){
           sockets[data] = socket;
           users.push(data);
           socket.emit('userSet', {username: data, userslist: users});
-    	  //socket.emit('useradded',users);
+
         }
       });
 
 
        socket.on('message', function(data,to){
             //Send message to everyone
-              console.log(to+' '+sockets[to]);
+
+
+
+              console.log(to+' '+ sockets[to]);
             if(sockets[to])
-             {sockets[to].emit('message', {message:data});}
+             {
+             sockets[to].emit('message', {message:data});
+             }
+             //online or not still gonna send message
+              /*var newMsg = new ChatModel({msg: data, nick:to});
+                          newMsg.save(function(err)
+                          {
+                             if(err) throw err;
+                          });*/
+
+
+
         });
+
+      var mainroom="";
+
+      socket.on('create', function(room){
+        mainroom=room;
+        console.log(mainroom);
+      socket.join(room);
+
+      })
 
       socket.on('messageToRoom', function(data){
             //Send message to everyone
 
-            console.log("Som");
-            Object.keys(io.sockets.sockets).forEach(function(id){
+
+            socket.to(mainroom).emit("messageToRoom",{message:data});
+
+            /*Object.keys(io.sockets.sockets).forEach(function(id){
                   if(id != socket.id)
                   {
                   io.to(id).emit('messageToRoom',{message:data});
                   }
-            });
+            });*/
 
 
         });
