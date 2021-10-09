@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.15.3",
+    "express": "^4.17.1",
     "mongoose": "^4.11.7",
     "mongose": "0.0.2-security",
     "socket.io": "^2.0.3"
